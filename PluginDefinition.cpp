@@ -1,4 +1,4 @@
-﻿//this file is part of notepad++
+//this file is part of notepad++
 //Copyright (C)2003 Don HO <donho@altern.org>
 //
 //This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 #include "menuCmdID.h"
 #include "Version.h"
 
+//
 // The plugin data that Notepad++ needs
 //
 FuncItem funcItem[nbFunc];
@@ -33,7 +34,7 @@ NppData nppData;
 //
 // Initialize your plugin data here
 // It will be called while plugin loading   
-void pluginInit(HANDLE hModule)
+void pluginInit(HANDLE /*hModule*/)
 {
 }
 
@@ -156,6 +157,7 @@ void commandMenuCleanUp()
 	// Don't forget to deallocate your shortcut here
 }
 
+
 //
 // This function help you to initialize your plugin commands
 //
@@ -234,7 +236,7 @@ void Newline()
 		case L_CS:
 		case L_JAVA:
 		case L_USER:
-		case 53: // PowerShell
+		case L_POWERSHELL:
             cStyleComment(curScintilla, line, line_number);
             indentAfterCurlyBrace(curScintilla, line_number - 1);
             break;
@@ -269,7 +271,7 @@ void Newline()
                 Ruby_Newline(curScintilla);
             }
             break;
-        case L_TXT:
+        case L_TEXT:
             auto_numbering();
             break;
     }
@@ -290,7 +292,7 @@ int indentAfterCurlyBrace(HWND &curScintilla, int line_number)
     ::SendMessage(curScintilla, SCI_GETSELTEXT, 0, (LPARAM)&selection);
 
     char *lastchar;
-    lastchar = substr(selection, strlen(selection) - 1, strlen(selection));
+    lastchar = substr(selection, static_cast<int>(strlen(selection) - 1), static_cast<int>(strlen(selection)));
 
     char nextchar[1];
     ::SendMessage(curScintilla, SCI_SETSEL, save_position, save_position + 1);
@@ -377,7 +379,7 @@ void indentEndingCurlyBrace()
 int poundComment(HWND &curScintilla, char *line)
 {
     int ret = 0;
-    char comment[2];
+	char comment[3] = { 0 };
     strncpy(comment, line, 2);
     if (strstr(comment, "# "))
     {
@@ -400,7 +402,7 @@ int poundComment(HWND &curScintilla, char *line)
 int cStyleComment(HWND &curScintilla, char *line, int line_number)
 {
     int ret = 0;
-    char comment[2];
+    char comment[3];
     strncpy(comment, line, 2);
 	comment[2] = '\0';
 
@@ -559,8 +561,8 @@ void end_tag()
 
     int trim_line = strlen(trim(line));
 
-    int matching_tag_indentation;
-    int tag_line;
+    int matching_tag_indentation = 0;
+    int tag_line = 0;
     
     int end = 0;
     char selection[9999];
@@ -622,7 +624,7 @@ void end_tag()
         char tag[30];
         create_ending_tag(tag);
 
-        int taglen = strlen(tag);
+        int taglen = static_cast<int>(strlen(tag));
 
         if (trim_line < 1)
         {
@@ -792,7 +794,6 @@ void get_files_now()
 
 void find_missing()
 {
-    HWND curScintilla = getCurrentScintilla();
     
     get_files_now();
 
@@ -1094,7 +1095,7 @@ void url_decode_selection()
  */
 char from_hex(char ch)
 {
-  return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
+  return static_cast<char>(isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10);
 }
 
 char to_hex(char code)
@@ -1298,7 +1299,7 @@ int auto_numbering()
 
             trim(selection);
 
-            int last = strlen(selection);
+            int last = static_cast<int>(strlen(selection));
 
             // FIND LAST SPACE
             while(last)
@@ -1309,7 +1310,7 @@ int auto_numbering()
 
             // FIND FIRST SPACE
             int first = 0;
-            int slen = strlen(selection);
+            int slen = static_cast<int>(strlen(selection));
             while (first < slen)
             {
                 if (isspace(selection[first])) break;
@@ -1333,7 +1334,7 @@ int auto_numbering()
 
             ::SendMessage(curScintilla, SCI_INSERTTEXT, save_position, (LPARAM) buff );
             
-            int new_position = save_position + strlen(buff);
+            int new_position = save_position + static_cast<int>(strlen(buff));
             
             if (strstr(selection, "#") || strstr(selection, "*"))
             {
@@ -1349,7 +1350,7 @@ int auto_numbering()
 
                     char *white_space = substr(selection, first , last );
                     ::SendMessage(curScintilla, SCI_INSERTTEXT, save_position, (LPARAM) white_space );
-                    new_position = new_position + strlen(white_space);
+                    new_position = new_position + static_cast<int>(strlen(white_space));
                 }
             }
             
@@ -1445,7 +1446,7 @@ void Ruby_Newline(HWND &curScintilla)
     char tree[4];
     strncpy(tree, line, 3);
 
-    char *end = substr(line, strlen(line) - 2, strlen(line));
+    char *end = substr(line, static_cast<int>(strlen(line) - 2), static_cast<int>(strlen(line)));
 
     if (strstr(seven, "private")
 
@@ -1525,7 +1526,7 @@ void RubyExtra(int character)
         return;
     }
 
-    if (strcmp(content, cmp) == 0 && strlen(content) == check_len)
+    if (strcmp(content, cmp) == 0 && static_cast<int>(strlen(content)) == check_len)
     {
         int fold_line = ::SendMessage(curScintilla, SCI_GETFOLDPARENT, save_line, 0);
         //int fold_pos  = ::SendMessage(curScintilla, SCI_POSITIONFROMLINE, fold_line, 0);
@@ -1640,8 +1641,8 @@ void peek_hex_color()
 
         ::SendMessage(curScintilla, SCI_SETANCHOR, selection_end, 0);
 
-        char hex[6];
-        strcpy(hex, substr(selection,1, strlen(selection)));
+        char hex[7];
+        strcpy(hex, substr(selection,1, static_cast<int>(strlen(selection))));
 
         if (strlen(hex) == 3)
         {
@@ -1660,13 +1661,13 @@ void peek_hex_color()
         }
 
         // Reverse RGB to BGR which Scintilla uses
-        char reverse[6];
-        reverse[0] = toupper(hex[4]);
-        reverse[1] = toupper(hex[5]);
-        reverse[2] = toupper(hex[2]);
-        reverse[3] = toupper(hex[3]);
-        reverse[4] = toupper(hex[0]);
-        reverse[5] = toupper(hex[1]);
+        char reverse[7];
+        reverse[0] = static_cast<char>(toupper(hex[4]));
+        reverse[1] = static_cast<char>(toupper(hex[5]));
+        reverse[2] = static_cast<char>(toupper(hex[2]));
+        reverse[3] = static_cast<char>(toupper(hex[3]));
+        reverse[4] = static_cast<char>(toupper(hex[0]));
+        reverse[5] = static_cast<char>(toupper(hex[1]));
         reverse[6] = '\0';
 
         indicator = i;
@@ -1911,7 +1912,7 @@ void paste_indented()
 	::SendMessage(curScintilla, SCI_ENDUNDOACTION, 0, 0);
 }
 
-void watch_dblclick(int position, int line) {
+void watch_dblclick(int position, int /*line*/) {
     HWND curScintilla = getCurrentScintilla();
 
 	int comment = 9;
@@ -2074,7 +2075,6 @@ void select_string() {
 
 	int style_one;
 
-	int i = 2;
 	while (1) {
 		::SendMessage(curScintilla, SCI_SEARCHANCHOR, 0, 0);
 		::SendMessage(curScintilla, SCI_SEARCHNEXT , SCFIND_REGEXP, (LPARAM)"['\"]");
@@ -2142,7 +2142,6 @@ HWND getCurrentScintilla()
     {
         return nppData._scintillaSecondHandle;
     }
-    return nppData._scintillaMainHandle;
 }
 
 char* getEOL()

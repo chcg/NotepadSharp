@@ -1,9 +1,11 @@
-test/*
-Unicode Realeas/*
-Unicode Debug/*
-bin/*
-ipch/*
-*.opensdf
 *.sdf
+*.sln
 *.suo
-
+bin/
+bin64/
+*.opensdf
+*.exp
+*.lib
+*.vcxproj.user
+*.aps
+*.zip
